@@ -1,17 +1,21 @@
 package me.bello.floatview.service;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
+
+import java.io.File;
 
 import me.bello.floatview.activity.ShotActivity;
 
@@ -26,12 +30,11 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 public class SelectViewService extends Service {
 
     private WindowManager wm;
-    private Button btn;
+    private ImageView img;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.e("service", "第二个service");
         createFloatView();
     }
 
@@ -45,46 +48,54 @@ public class SelectViewService extends Service {
      * 创建悬浮按钮
      */
     private void createFloatView() {
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        wm = (WindowManager) getApplication().getSystemService(getApplication().WINDOW_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            //8.0新特性
-            lp.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-        } else {
-            lp.type = WindowManager.LayoutParams.TYPE_TOAST;
-        }
-        lp.format = PixelFormat.RGBA_8888;
-        lp.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        lp.gravity = Gravity.CENTER;
-        lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-//        lp.x = 0;
-//        lp.y = 0;
-
-        btn = new Button(getApplicationContext());
-        btn.setText("悬浮333");
-        btn.setBackgroundColor(Color.parseColor("#66FFFFFF"));
-        btn.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
-        btn.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
-        btn.setGravity(Gravity.CENTER);
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(SelectViewService.this, ShotActivity.class);
-                intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+        try {
+            WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+            wm = (WindowManager) getApplication().getSystemService(getApplication().WINDOW_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                //8.0新特性
+                lp.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+            } else {
+                lp.type = WindowManager.LayoutParams.TYPE_TOAST;
             }
-        });
+            lp.format = PixelFormat.RGBA_8888;
+            lp.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+//            lp.gravity = Gravity.CENTER;
+            lp.width = 1160;
+            lp.height = 1028;
+            lp.x = 155;
+            lp.y = 0;
 
+            WindowManager.LayoutParams wl = new WindowManager.LayoutParams();
+            wl.width = 1160;
+            wl.height = 1028;
+            img = new ImageView(getApplicationContext());
+            img.setBackgroundColor(Color.parseColor("#cc000000"));
+            img.setImageBitmap(BitmapFactory.decodeFile("/storage/emulated/0/screen.png"));
+            img.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    stopSelf();
+                    onDestroy();
+                }
+            });
+            img.setScaleType(ImageView.ScaleType.FIT_XY);
+            img.setLayoutParams(wl);
 
-        wm.addView(btn, lp);
+            wm.addView(img, lp);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
     @Override
     public void onDestroy() {
-        wm.removeView(btn);
-        wm = null;
+        if (null!= wm) {
+            wm.removeView(img);
+            wm = null;
+        }
         super.onDestroy();
     }
+
+
 }
